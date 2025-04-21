@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Filter, ArrowUpDown, ExternalLink, ThumbsUp, MessageSquare, Eye, ChevronLeft, ChevronRight, RefreshCw, AlertCircle } from 'lucide-react'
+import { Search, Filter, ArrowUpDown, ExternalLink, ThumbsUp, MessageSquare, Eye, ChevronLeft, ChevronRight, RefreshCw, AlertCircle, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { format } from 'date-fns'
 
 function MainFeature() {
@@ -11,7 +11,10 @@ function MainFeature() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('activity')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [hasMore, setHasMore] = useState(true)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const searchInputRef = useRef(null)
 
@@ -22,6 +25,12 @@ function MainFeature() {
     { value: 'hot', label: 'Hot' },
     { value: 'week', label: 'Week' },
     { value: 'month', label: 'Month' },
+  ]
+
+  const pageSizeOptions = [
+    { value: 10, label: '10 per page' },
+    { value: 25, label: '25 per page' },
+    { value: 50, label: '50 per page' },
   ]
 
   const fetchQuestions = async () => {
@@ -35,7 +44,7 @@ function MainFeature() {
         sort: sortOption,
         site: 'stackoverflow',
         page: page,
-        pagesize: 10,
+        pagesize: pageSize,
         ...(searchTerm && { intitle: searchTerm })
       }).toString()
       
@@ -46,8 +55,13 @@ function MainFeature() {
         throw new Error(data.error_message)
       }
       
-      setQuestions(prev => page === 1 ? data.items : [...prev, ...data.items])
+      setQuestions(data.items)
       setHasMore(!data.has_more)
+      // Calculate total pages based on total and pageSize
+      // Stack API doesn't provide exact count, so we estimate
+      const estimatedTotal = data.has_more ? (data.quota_max || 1000) : (page * pageSize)
+      setTotalItems(estimatedTotal)
+      setTotalPages(Math.ceil(estimatedTotal / pageSize))
     } catch (err) {
       setError(err.message || 'Failed to fetch questions')
     } finally {
@@ -57,7 +71,7 @@ function MainFeature() {
   
   useEffect(() => {
     fetchQuestions()
-  }, [sortOption, page])
+  }, [sortOption, page, pageSize])
   
   const handleSearch = (e) => {
     e.preventDefault()
@@ -70,8 +84,14 @@ function MainFeature() {
     fetchQuestions()
   }
   
-  const handleLoadMore = () => {
-    setPage(prev => prev + 1)
+  const handlePageChange = (newPage) => {
+    setPage(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize)
+    setPage(1) // Reset to first page when changing page size
   }
   
   const handleQuestionClick = (question) => {
@@ -91,6 +111,115 @@ function MainFeature() {
   const formatDate = (timestamp) => {
     return format(new Date(timestamp * 1000), 'MMM d, yyyy')
   }
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    
+    // Determine which page numbers to show
+    let pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if there are fewer than maxVisiblePages
+      pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+    } else {
+      // Always include first page, last page, and current page
+      pageNumbers.push(1);
+      
+      // Determine the range around the current page
+      let start = Math.max(2, page - 1);
+      let end = Math.min(totalPages - 1, page + 1);
+      
+      // Adjust to show up to 3 pages in the middle
+      if (start === 2) end = Math.min(totalPages - 1, start + 2);
+      if (end === totalPages - 1) start = Math.max(2, end - 2);
+      
+      // Add ellipsis if needed
+      if (start > 2) pageNumbers.push('...');
+      
+      // Add the pages around the current page
+      for (let i = start; i <= end; i++) {
+        pageNumbers.push(i);
+      }
+      
+      if (end < totalPages - 1) pageNumbers.push('...');
+      
+      pageNumbers.push(totalPages);
+    }
+    
+    return (
+      <div className="flex items-center justify-center gap-1 mt-2">
+        <button
+          onClick={() => handlePageChange(1)}
+          disabled={page === 1 || loading}
+          className={`p-2 rounded hover:bg-surface-100 dark:hover:bg-surface-700 ${
+            page === 1 || loading ? 'text-surface-300 dark:text-surface-600 cursor-not-allowed' : 'text-surface-600 dark:text-surface-300'
+          }`}
+          aria-label="First page"
+        >
+          <ChevronsLeft className="w-4 h-4" />
+        </button>
+        
+        <button
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1 || loading}
+          className={`p-2 rounded hover:bg-surface-100 dark:hover:bg-surface-700 ${
+            page === 1 || loading ? 'text-surface-300 dark:text-surface-600 cursor-not-allowed' : 'text-surface-600 dark:text-surface-300'
+          }`}
+          aria-label="Previous page"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        
+        {pageNumbers.map((pageNum, index) => (
+          pageNum === '...' ? (
+            <span key={`ellipsis-${index}`} className="px-2 text-surface-400">...</span>
+          ) : (
+            <button
+              key={`page-${pageNum}`}
+              onClick={() => handlePageChange(pageNum)}
+              disabled={loading}
+              className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${
+                page === pageNum 
+                  ? 'bg-primary text-white' 
+                  : 'hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-300'
+              }`}
+              aria-label={`Page ${pageNum}`}
+              aria-current={page === pageNum ? 'page' : undefined}
+            >
+              {pageNum}
+            </button>
+          )
+        ))}
+        
+        <button
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === totalPages || loading || questions.length === 0}
+          className={`p-2 rounded hover:bg-surface-100 dark:hover:bg-surface-700 ${
+            page === totalPages || loading || questions.length === 0
+              ? 'text-surface-300 dark:text-surface-600 cursor-not-allowed' 
+              : 'text-surface-600 dark:text-surface-300'
+          }`}
+          aria-label="Next page"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+        
+        <button
+          onClick={() => handlePageChange(totalPages)}
+          disabled={page === totalPages || loading || questions.length === 0}
+          className={`p-2 rounded hover:bg-surface-100 dark:hover:bg-surface-700 ${
+            page === totalPages || loading || questions.length === 0
+              ? 'text-surface-300 dark:text-surface-600 cursor-not-allowed' 
+              : 'text-surface-600 dark:text-surface-300'
+          }`}
+          aria-label="Last page"
+        >
+          <ChevronsRight className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="relative">
@@ -145,29 +274,53 @@ function MainFeature() {
               className="overflow-hidden border-b border-surface-200 dark:border-surface-700"
             >
               <div className="p-4 bg-surface-50 dark:bg-surface-800">
-                <div className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-2">
-                    <ArrowUpDown className="w-4 h-4 text-surface-500" />
-                    <span className="text-sm font-medium">Sort by:</span>
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ArrowUpDown className="w-4 h-4 text-surface-500" />
+                      <span className="text-sm font-medium">Sort by:</span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {sortOptions.map(option => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            setSortOption(option.value)
+                            setPage(1)
+                          }}
+                          className={`px-3 py-1 text-sm rounded-full transition-all ${
+                            sortOption === option.value
+                              ? 'bg-primary text-white'
+                              : 'bg-white dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   
-                  <div className="flex flex-wrap gap-2">
-                    {sortOptions.map(option => (
-                      <button
-                        key={option.value}
-                        onClick={() => {
-                          setSortOption(option.value)
-                          setPage(1)
-                        }}
-                        className={`px-3 py-1 text-sm rounded-full transition-all ${
-                          sortOption === option.value
-                            ? 'bg-primary text-white'
-                            : 'bg-white dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium">Page size:</span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {pageSizeOptions.map(option => (
+                        <button
+                          key={option.value}
+                          onClick={() => handlePageSizeChange(option.value)}
+                          className={`px-3 py-1 text-sm rounded-full transition-all ${
+                            pageSize === option.value
+                              ? 'bg-primary text-white'
+                              : 'bg-white dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -347,22 +500,23 @@ function MainFeature() {
               )}
               
               {!error && (
-                <div className="p-4 flex justify-center">
+                <div className="p-4 flex flex-col items-center">
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 border-t-2 border-primary rounded-full animate-spin"></div>
                       <span className="text-surface-600 dark:text-surface-400">Loading...</span>
                     </div>
-                  ) : hasMore ? (
-                    <button
-                      onClick={handleLoadMore}
-                      className="btn btn-outline"
-                    >
-                      Load More
-                    </button>
-                  ) : (
-                    <p className="text-sm text-surface-500">No more questions to load</p>
-                  )}
+                  ) : questions.length > 0 ? (
+                    <div className="w-full">
+                      <div className="flex justify-center mb-4">
+                        {renderPagination()}
+                      </div>
+                      <div className="text-center text-sm text-surface-500">
+                        Page {page} of {totalPages > 0 ? totalPages : 1} 
+                        {totalItems > 0 && ` • Showing ${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, totalItems)} of about ${totalItems} results`}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               )}
             </motion.div>
