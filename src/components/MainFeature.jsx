@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Filter, ArrowUpDown, ExternalLink, ThumbsUp, MessageSquare, Eye, ChevronLeft, ChevronRight, RefreshCw, AlertCircle, ChevronsLeft, ChevronsRight, X } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatRelativeTime } from '../utils/dateUtils'
 
 function MainFeature() {
   const navigate = useNavigate()
@@ -133,10 +133,6 @@ function MainFeature() {
     const txt = document.createElement('textarea')
     txt.innerHTML = html
     return txt.value
-  }
-  
-  const formatDate = (timestamp) => {
-    return format(new Date(timestamp * 1000), 'MMM d, yyyy')
   }
 
   const renderPagination = () => {
@@ -459,7 +455,7 @@ function MainFeature() {
                               <span>{question.answer_count}</span>
                             </div>
                             <div>
-                              <span>{formatDate(question.creation_date)}</span>
+                              <span>{formatRelativeTime(question.creation_date)}</span>
                             </div>
                           </div>
                         </div>

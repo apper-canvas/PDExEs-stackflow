@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ThumbsUp, MessageSquare, Eye, ExternalLink, AlertCircle, Calendar, User, Award, Clock } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatRelativeTime } from '../utils/dateUtils'
 
 function QuestionDetail() {
   const { questionId } = useParams()
@@ -52,10 +52,6 @@ function QuestionDetail() {
     const txt = document.createElement('textarea')
     txt.innerHTML = html
     return txt.value
-  }
-  
-  const formatDate = (timestamp) => {
-    return format(new Date(timestamp * 1000), 'MMM d, yyyy HH:mm')
   }
 
   if (loading) {
@@ -146,13 +142,13 @@ function QuestionDetail() {
             <div className="flex flex-wrap items-center gap-4 text-sm text-surface-500 mb-4">
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                <span>Asked {formatDate(question.creation_date)}</span>
+                <span>Asked {formatRelativeTime(question.creation_date)}</span>
               </div>
               
               {question.last_activity_date && (
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  <span>Active {formatDate(question.last_activity_date)}</span>
+                  <span>Active {formatRelativeTime(question.last_activity_date)}</span>
                 </div>
               )}
               
