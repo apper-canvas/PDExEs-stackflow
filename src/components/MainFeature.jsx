@@ -10,7 +10,7 @@ function MainFeature() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [sortOption, setSortOption] = useState('activity')
+  const [sortOption, setSortOption] = useState('creation')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [hasMore, setHasMore] = useState(true)
