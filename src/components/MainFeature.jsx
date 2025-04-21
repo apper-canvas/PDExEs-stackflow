@@ -49,14 +49,22 @@ function MainFeature() {
     
     try {
       const url = new URL('https://api.stackexchange.com/2.3/questions')
+      // Always include 'c#' as a default tag
+      let taggedValue = 'c#'
+      
+      // If there's a user-specified tag filter, combine it with the default c# tag
+      if (tagFilter && tagFilter !== 'c#') {
+        taggedValue = `${taggedValue};${tagFilter}`
+      }
+      
       const params = {
         order: 'desc',
         sort: sortOption,
         site: 'stackoverflow',
         page: page,
         pagesize: pageSize,
-        ...(searchTerm && { intitle: searchTerm }),
-        ...(tagFilter && { tagged: tagFilter })
+        tagged: taggedValue, // Always include c# tag
+        ...(searchTerm && { intitle: searchTerm })
       }
       
       url.search = new URLSearchParams(params).toString()
