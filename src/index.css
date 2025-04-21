@@ -10,6 +10,132 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-semibold;
   }
+
+  /* Prism.js theme overrides */
+  code[class*="language-"],
+  pre[class*="language-"] {
+    @apply font-mono text-sm;
+  }
+
+  pre[class*="language-"] {
+    @apply my-4 rounded-lg overflow-auto shadow-sm;
+  }
+
+  /* Light theme for code */
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+    @apply text-gray-500;
+  }
+  
+  .token.punctuation {
+    @apply text-gray-700;
+  }
+  
+  .token.namespace {
+    @apply opacity-70;
+  }
+  
+  .token.property,
+  .token.tag,
+  .token.boolean,
+  .token.number,
+  .token.constant,
+  .token.symbol,
+  .token.deleted {
+    @apply text-pink-600;
+  }
+  
+  .token.selector,
+  .token.attr-name,
+  .token.string,
+  .token.char,
+  .token.builtin,
+  .token.inserted {
+    @apply text-green-600;
+  }
+  
+  .token.operator,
+  .token.entity,
+  .token.url,
+  .language-css .token.string,
+  .style .token.string {
+    @apply text-yellow-600;
+  }
+  
+  .token.atrule,
+  .token.attr-value,
+  .token.keyword {
+    @apply text-blue-600;
+  }
+  
+  .token.function,
+  .token.class-name {
+    @apply text-purple-600;
+  }
+  
+  .token.regex,
+  .token.important,
+  .token.variable {
+    @apply text-orange-500;
+  }
+
+  /* Dark theme for code */
+  .dark .token.comment,
+  .dark .token.prolog,
+  .dark .token.doctype,
+  .dark .token.cdata {
+    @apply text-gray-400;
+  }
+  
+  .dark .token.punctuation {
+    @apply text-gray-300;
+  }
+  
+  .dark .token.property,
+  .dark .token.tag,
+  .dark .token.boolean,
+  .dark .token.number,
+  .dark .token.constant,
+  .dark .token.symbol,
+  .dark .token.deleted {
+    @apply text-pink-400;
+  }
+  
+  .dark .token.selector,
+  .dark .token.attr-name,
+  .dark .token.string,
+  .dark .token.char,
+  .dark .token.builtin,
+  .dark .token.inserted {
+    @apply text-green-400;
+  }
+  
+  .dark .token.operator,
+  .dark .token.entity,
+  .dark .token.url,
+  .dark .language-css .token.string,
+  .dark .style .token.string {
+    @apply text-yellow-400;
+  }
+  
+  .dark .token.atrule,
+  .dark .token.attr-value,
+  .dark .token.keyword {
+    @apply text-blue-400;
+  }
+  
+  .dark .token.function,
+  .dark .token.class-name {
+    @apply text-purple-400;
+  }
+  
+  .dark .token.regex,
+  .dark .token.important,
+  .dark .token.variable {
+    @apply text-orange-400;
+  }
 }
 
 @layer components {
@@ -39,6 +165,11 @@
   
   .tag {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200;
+  }
+
+  /* Code styling */
+  .code-block {
+    @apply bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4 overflow-x-auto my-4;
   }
 }
 

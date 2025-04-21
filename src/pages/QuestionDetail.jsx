@@ -3,12 +3,14 @@ import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ThumbsUp, MessageSquare, Eye, ExternalLink, AlertCircle, Calendar, User, Award, Clock } from 'lucide-react'
 import { formatRelativeTime } from '../utils/dateUtils'
+import { processCodeBlocks } from '../utils/codeUtils'
 
 function QuestionDetail() {
   const { questionId } = useParams()
   const [question, setQuestion] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [processedBody, setProcessedBody] = useState('')
 
   useEffect(() => {
     const fetchQuestionDetails = async () => {
@@ -35,6 +37,13 @@ function QuestionDetail() {
         
         if (data.items && data.items.length > 0) {
           setQuestion(data.items[0])
+          
+          // Process code blocks in the body for syntax highlighting
+          if (data.items[0].body) {
+            const decodedHtml = decodeHtml(data.items[0].body)
+            const highlighted = processCodeBlocks(decodedHtml)
+            setProcessedBody(highlighted)
+          }
         } else {
           throw new Error('Question not found')
         }
@@ -160,10 +169,10 @@ function QuestionDetail() {
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
               <div className="md:col-span-3">
-                {question.body && (
+                {processedBody && (
                   <div 
                     className="prose dark:prose-invert max-w-none mb-6"
-                    dangerouslySetInnerHTML={{ __html: question.body }}
+                    dangerouslySetInnerHTML={{ __html: processedBody }}
                   />
                 )}
                 
