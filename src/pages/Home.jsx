@@ -41,11 +41,11 @@ function Home() {
           <div className="max-w-4xl mx-auto">
             <div className="mb-8 text-center">
               <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text">
-                Explore Stack Overflow Questions
+                Explore C# Stack Overflow Questions
               </h1>
               <p className="text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
-                Browse through the latest questions from the Stack Overflow community.
-                Filter, search, and discover programming solutions.
+                Browse through the latest C# and related tag questions from the Stack Overflow community.
+                Filter, search, and discover C# programming solutions.
               </p>
             </div>
             
