@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Filter, ArrowUpDown, ExternalLink, ThumbsUp, MessageSquare, Eye, ChevronLeft, ChevronRight, RefreshCw, AlertCircle, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { Search, Filter, ArrowUpDown, ExternalLink, ThumbsUp, MessageSquare, Eye, ChevronLeft, ChevronRight, RefreshCw, AlertCircle, ChevronsLeft, ChevronsRight, X } from 'lucide-react'
 import { format } from 'date-fns'
 
 function MainFeature() {
@@ -16,6 +16,7 @@ function MainFeature() {
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [tagFilter, setTagFilter] = useState('')
   const searchInputRef = useRef(null)
 
   const sortOptions = [
@@ -33,20 +34,32 @@ function MainFeature() {
     { value: 50, label: '50 per page' },
   ]
 
+  // Check URL for tag parameter on component mount
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const tagParam = url.searchParams.get('tagged')
+    if (tagParam) {
+      setTagFilter(tagParam)
+    }
+  }, [])
+
   const fetchQuestions = async () => {
     setLoading(true)
     setError(null)
     
     try {
       const url = new URL('https://api.stackexchange.com/2.3/questions')
-      url.search = new URLSearchParams({
+      const params = {
         order: 'desc',
         sort: sortOption,
         site: 'stackoverflow',
         page: page,
         pagesize: pageSize,
-        ...(searchTerm && { intitle: searchTerm })
-      }).toString()
+        ...(searchTerm && { intitle: searchTerm }),
+        ...(tagFilter && { tagged: tagFilter })
+      }
+      
+      url.search = new URLSearchParams(params).toString()
       
       const response = await fetch(url)
       const data = await response.json()
@@ -71,7 +84,7 @@ function MainFeature() {
   
   useEffect(() => {
     fetchQuestions()
-  }, [sortOption, page, pageSize])
+  }, [sortOption, page, pageSize, tagFilter])
   
   const handleSearch = (e) => {
     e.preventDefault()
@@ -100,6 +113,15 @@ function MainFeature() {
   
   const handleBackToList = () => {
     setSelectedQuestion(null)
+  }
+  
+  const clearTagFilter = () => {
+    setTagFilter('')
+    // Update URL by removing the tagged parameter
+    const url = new URL(window.location.href)
+    url.searchParams.delete('tagged')
+    window.history.pushState({}, '', url)
+    setPage(1)
   }
   
   const decodeHtml = (html) => {
@@ -265,6 +287,23 @@ function MainFeature() {
           </div>
         </div>
         
+        {/* Tag filter indicator */}
+        {tagFilter && (
+          <div className="px-4 py-2 bg-primary/10 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Filtered by tag:</span>
+              <span className="tag bg-primary text-white">{tagFilter}</span>
+            </div>
+            <button 
+              onClick={clearTagFilter} 
+              className="p-1 rounded-full hover:bg-surface-200 dark:hover:bg-surface-700"
+              aria-label="Clear tag filter"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+        
         <AnimatePresence>
           {isFilterOpen && (
             <motion.div
@@ -428,13 +467,27 @@ function MainFeature() {
                 </div>
               ) : questions.length === 0 && !loading ? (
                 <div className="p-8 text-center">
-                  <p className="text-surface-600 dark:text-surface-400 mb-4">No questions found. Try a different search term or filter.</p>
-                  <button 
-                    onClick={handleRefresh}
-                    className="btn btn-primary"
-                  >
-                    Refresh
-                  </button>
+                  <p className="text-surface-600 dark:text-surface-400 mb-4">
+                    {tagFilter ? 
+                      `No questions found with tag '${tagFilter}'. Try a different filter or clear the tag.` : 
+                      'No questions found. Try a different search term or filter.'}
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    {tagFilter && (
+                      <button 
+                        onClick={clearTagFilter}
+                        className="btn btn-outline"
+                      >
+                        Clear Tag Filter
+                      </button>
+                    )}
+                    <button 
+                      onClick={handleRefresh}
+                      className="btn btn-primary"
+                    >
+                      Refresh
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <ul className="divide-y divide-surface-200 dark:divide-surface-700">
@@ -460,7 +513,7 @@ function MainFeature() {
                               
                               <div className="flex flex-wrap gap-2 mb-3">
                                 {question.tags.slice(0, 4).map(tag => (
-                                  <span key={tag} className="tag">
+                                  <span key={tag} className={`tag ${tag === tagFilter ? 'bg-primary text-white' : ''}`}>
                                     {tag}
                                   </span>
                                 ))}
@@ -514,6 +567,7 @@ function MainFeature() {
                       <div className="text-center text-sm text-surface-500">
                         Page {page} of {totalPages > 0 ? totalPages : 1} 
                         {totalItems > 0 && ` • Showing ${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, totalItems)} of about ${totalItems} results`}
+                        {tagFilter && ` • Filtered by tag: ${tagFilter}`}
                       </div>
                     </div>
                   ) : null}
