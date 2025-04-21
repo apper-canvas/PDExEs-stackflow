@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Filter, ArrowUpDown, ExternalLink, ThumbsUp, MessageSquare, Eye, ChevronLeft, ChevronRight, RefreshCw, AlertCircle, ChevronsLeft, ChevronsRight, X } from 'lucide-react'
 import { format } from 'date-fns'
 
 function MainFeature() {
+  const navigate = useNavigate()
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [selectedQuestion, setSelectedQuestion] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('activity')
   const [page, setPage] = useState(1)
@@ -116,11 +117,7 @@ function MainFeature() {
   }
   
   const handleQuestionClick = (question) => {
-    setSelectedQuestion(question)
-  }
-  
-  const handleBackToList = () => {
-    setSelectedQuestion(null)
+    navigate(`/questions/${question.question_id}`)
   }
   
   const clearTagFilter = () => {
@@ -375,215 +372,135 @@ function MainFeature() {
           )}
         </AnimatePresence>
         
-        <AnimatePresence mode="wait">
-          {selectedQuestion ? (
-            <motion.div
-              key="detail"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="p-4"
-            >
-              <button
-                onClick={handleBackToList}
-                className="mb-4 flex items-center gap-1 text-surface-500 hover:text-primary transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Back to list</span>
-              </button>
-              
-              <div className="mb-4">
-                <h2 className="text-xl font-bold mb-2">{decodeHtml(selectedQuestion.title)}</h2>
-                
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {selectedQuestion.tags.map(tag => (
-                    <span key={tag} className="tag">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                
-                <div className="flex flex-wrap gap-4 text-sm text-surface-500 mb-4">
-                  <div className="flex items-center gap-1">
-                    <ThumbsUp className="w-4 h-4" />
-                    <span>{selectedQuestion.score} votes</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageSquare className="w-4 h-4" />
-                    <span>{selectedQuestion.answer_count} answers</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    <span>{selectedQuestion.view_count} views</span>
-                  </div>
-                  <div>
-                    <span>Asked on {formatDate(selectedQuestion.creation_date)}</span>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-2">
-                    <img 
-                      src={selectedQuestion.owner.profile_image || 'https://www.gravatar.com/avatar/0?d=identicon&s=32'} 
-                      alt={selectedQuestion.owner.display_name}
-                      className="w-8 h-8 rounded-full"
-                    />
-                    <div>
-                      <div className="text-sm font-medium">{selectedQuestion.owner.display_name}</div>
-                      <div className="text-xs text-surface-500">Reputation: {selectedQuestion.owner.reputation}</div>
-                    </div>
-                  </div>
-                  
-                  <a 
-                    href={selectedQuestion.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="btn btn-secondary flex items-center gap-2"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    <span>View on Stack Overflow</span>
-                  </a>
-                </div>
-                
-                <div className="p-4 bg-surface-50 dark:bg-surface-800 rounded-lg">
-                  <p className="text-sm text-surface-600 dark:text-surface-300 italic">
-                    To view the full question content and answers, please visit Stack Overflow using the link above.
-                  </p>
-                </div>
+        <motion.div
+          key="list"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {error ? (
+            <div className="p-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
+                <AlertCircle className="w-8 h-8 text-red-500 dark:text-red-400" />
               </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="list"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {error ? (
-                <div className="p-8 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
-                    <AlertCircle className="w-8 h-8 text-red-500 dark:text-red-400" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">Error Loading Questions</h3>
-                  <p className="text-surface-600 dark:text-surface-400 mb-4">{error}</p>
+              <h3 className="text-lg font-medium mb-2">Error Loading Questions</h3>
+              <p className="text-surface-600 dark:text-surface-400 mb-4">{error}</p>
+              <button 
+                onClick={handleRefresh}
+                className="btn btn-primary"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : questions.length === 0 && !loading ? (
+            <div className="p-8 text-center">
+              <p className="text-surface-600 dark:text-surface-400 mb-4">
+                {tagFilter ? 
+                  `No questions found with tag '${tagFilter}'. Try a different filter or clear the tag.` : 
+                  'No questions found. Try a different search term or filter.'}
+              </p>
+              <div className="flex gap-2 justify-center">
+                {tagFilter && (
                   <button 
-                    onClick={handleRefresh}
-                    className="btn btn-primary"
+                    onClick={clearTagFilter}
+                    className="btn btn-outline"
                   >
-                    Try Again
+                    Clear Tag Filter
                   </button>
-                </div>
-              ) : questions.length === 0 && !loading ? (
-                <div className="p-8 text-center">
-                  <p className="text-surface-600 dark:text-surface-400 mb-4">
-                    {tagFilter ? 
-                      `No questions found with tag '${tagFilter}'. Try a different filter or clear the tag.` : 
-                      'No questions found. Try a different search term or filter.'}
-                  </p>
-                  <div className="flex gap-2 justify-center">
-                    {tagFilter && (
-                      <button 
-                        onClick={clearTagFilter}
-                        className="btn btn-outline"
-                      >
-                        Clear Tag Filter
-                      </button>
-                    )}
-                    <button 
-                      onClick={handleRefresh}
-                      className="btn btn-primary"
+                )}
+                <button 
+                  onClick={handleRefresh}
+                  className="btn btn-primary"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+          ) : (
+            <ul className="divide-y divide-surface-200 dark:divide-surface-700">
+              <AnimatePresence>
+                {questions.map((question) => (
+                  <motion.li
+                    key={question.question_id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="group"
+                  >
+                    <button
+                      onClick={() => handleQuestionClick(question)}
+                      className="w-full text-left p-4 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
                     >
-                      Refresh
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <ul className="divide-y divide-surface-200 dark:divide-surface-700">
-                  <AnimatePresence>
-                    {questions.map((question) => (
-                      <motion.li
-                        key={question.question_id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="group"
-                      >
-                        <button
-                          onClick={() => handleQuestionClick(question)}
-                          className="w-full text-left p-4 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
-                        >
-                          <div className="flex justify-between gap-4">
-                            <div className="flex-1">
-                              <h3 className="font-medium text-lg mb-2 group-hover:text-primary transition-colors text-balance">
-                                {decodeHtml(question.title)}
-                              </h3>
-                              
-                              <div className="flex flex-wrap gap-2 mb-3">
-                                {question.tags.slice(0, 4).map(tag => (
-                                  <span key={tag} className={`tag ${tag === tagFilter ? 'bg-primary text-white' : ''}`}>
-                                    {tag}
-                                  </span>
-                                ))}
-                                {question.tags.length > 4 && (
-                                  <span className="tag">+{question.tags.length - 4}</span>
-                                )}
-                              </div>
-                              
-                              <div className="flex flex-wrap gap-4 text-sm text-surface-500">
-                                <div className="flex items-center gap-1">
-                                  <ThumbsUp className="w-4 h-4" />
-                                  <span>{question.score}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <MessageSquare className="w-4 h-4" />
-                                  <span>{question.answer_count}</span>
-                                </div>
-                                <div>
-                                  <span>{formatDate(question.creation_date)}</span>
-                                </div>
-                              </div>
+                      <div className="flex justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-lg mb-2 group-hover:text-primary transition-colors text-balance">
+                            {decodeHtml(question.title)}
+                          </h3>
+                          
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {question.tags.slice(0, 4).map(tag => (
+                              <span key={tag} className={`tag ${tag === tagFilter ? 'bg-primary text-white' : ''}`}>
+                                {tag}
+                              </span>
+                            ))}
+                            {question.tags.length > 4 && (
+                              <span className="tag">+{question.tags.length - 4}</span>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-4 text-sm text-surface-500">
+                            <div className="flex items-center gap-1">
+                              <ThumbsUp className="w-4 h-4" />
+                              <span>{question.score}</span>
                             </div>
-                            
-                            <div className="flex items-start">
-                              <img 
-                                src={question.owner.profile_image || 'https://www.gravatar.com/avatar/0?d=identicon&s=32'} 
-                                alt={question.owner.display_name}
-                                className="w-8 h-8 rounded-full"
-                              />
+                            <div className="flex items-center gap-1">
+                              <MessageSquare className="w-4 h-4" />
+                              <span>{question.answer_count}</span>
+                            </div>
+                            <div>
+                              <span>{formatDate(question.creation_date)}</span>
                             </div>
                           </div>
-                        </button>
-                      </motion.li>
-                    ))}
-                  </AnimatePresence>
-                </ul>
-              )}
-              
-              {!error && (
-                <div className="p-4 flex flex-col items-center">
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-t-2 border-primary rounded-full animate-spin"></div>
-                      <span className="text-surface-600 dark:text-surface-400">Loading...</span>
-                    </div>
-                  ) : questions.length > 0 ? (
-                    <div className="w-full">
-                      <div className="flex justify-center mb-4">
-                        {renderPagination()}
+                        </div>
+                        
+                        <div className="flex items-start">
+                          <img 
+                            src={question.owner.profile_image || 'https://www.gravatar.com/avatar/0?d=identicon&s=32'} 
+                            alt={question.owner.display_name}
+                            className="w-8 h-8 rounded-full"
+                          />
+                        </div>
                       </div>
-                      <div className="text-center text-sm text-surface-500">
-                        Page {page} of {totalPages > 0 ? totalPages : 1} 
-                        {totalItems > 0 && ` • Showing ${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, totalItems)} of about ${totalItems} results`}
-                        {tagFilter && ` • Filtered by tag: ${tagFilter}`}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              )}
-            </motion.div>
+                    </button>
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </ul>
           )}
-        </AnimatePresence>
+          
+          {!error && (
+            <div className="p-4 flex flex-col items-center">
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-t-2 border-primary rounded-full animate-spin"></div>
+                  <span className="text-surface-600 dark:text-surface-400">Loading...</span>
+                </div>
+              ) : questions.length > 0 ? (
+                <div className="w-full">
+                  <div className="flex justify-center mb-4">
+                    {renderPagination()}
+                  </div>
+                  <div className="text-center text-sm text-surface-500">
+                    Page {page} of {totalPages > 0 ? totalPages : 1} 
+                    {totalItems > 0 && ` • Showing ${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, totalItems)} of about ${totalItems} results`}
+                    {tagFilter && ` • Filtered by tag: ${tagFilter}`}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </motion.div>
       </motion.div>
     </div>
   )

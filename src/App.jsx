@@ -4,6 +4,7 @@ import { Sun, Moon } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Home from './pages/Home'
 import NotFound from './pages/NotFound'
+import QuestionDetail from './pages/QuestionDetail'
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -69,6 +70,7 @@ function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/questions/:questionId" element={<QuestionDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
