@@ -50,11 +50,11 @@ function MainFeature() {
     
     try {
       const url = new URL('https://api.stackexchange.com/2.3/questions')
-      // Always include 'c#' as a default tag
-      let taggedValue = 'c#'
+      // Include both 'c#' and 'javascript' as default tags
+      let taggedValue = 'c#,javascript'
       
-      // If there's a user-specified tag filter, combine it with the default c# tag
-      if (tagFilter && tagFilter !== 'c#') {
+      // If there's a user-specified tag filter, combine it with the default tags
+      if (tagFilter && !['c#', 'javascript'].includes(tagFilter)) {
         taggedValue = `${taggedValue};${tagFilter}`
       }
       
@@ -64,7 +64,7 @@ function MainFeature() {
         site: 'stackoverflow',
         page: page,
         pagesize: pageSize,
-        tagged: taggedValue, // Always include c# tag
+        tagged: taggedValue, // Include both c# and javascript tags
         ...(searchTerm && { intitle: searchTerm })
       }
       
