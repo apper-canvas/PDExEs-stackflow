@@ -3,82 +3,28 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
-    
-    --primary-50: 270 100% 98%;
-    --primary-100: 269 97% 95%;
-    --primary-200: 269 97% 92%;
-    --primary-300: 267 96% 85%;
-    --primary-400: 266 94% 76%;
-    --primary-500: 262 83% 66%;
-    --primary-600: 258 75% 60%;
-    --primary-700: 256 69% 50%;
-    --primary-800: 256 70% 42%;
-    --primary-900: 255 70% 35%;
-    --primary-950: 255 75% 24%;
-    
-    --secondary-50: 280 100% 98%;
-    --secondary-100: 278 94% 95%;
-    --secondary-200: 276 98% 92%;
-    --secondary-300: 274 96% 85%;
-    --secondary-400: 272 94% 76%;
-    --secondary-500: 270 91% 65%;
-    --secondary-600: 268 85% 56%;
-    --secondary-700: 268 80% 47%;
-    --secondary-800: 268 74% 39%;
-    --secondary-900: 267 75% 32%;
-    --secondary-950: 267 80% 21%;
+  html {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    scroll-behavior: smooth;
   }
-
-  .dark {
-    --background: 0 0% 10%;
-    --foreground: 0 0% 98%;
-    
-    --primary-50: 255 75% 24%;
-    --primary-100: 255 70% 35%;
-    --primary-200: 256 70% 42%;
-    --primary-300: 256 69% 50%;
-    --primary-400: 258 75% 60%;
-    --primary-500: 262 83% 66%;
-    --primary-600: 266 94% 76%;
-    --primary-700: 267 96% 85%;
-    --primary-800: 269 97% 92%;
-    --primary-900: 269 97% 95%;
-    --primary-950: 270 100% 98%;
-    
-    --secondary-50: 267 80% 21%;
-    --secondary-100: 267 75% 32%;
-    --secondary-200: 268 74% 39%;
-    --secondary-300: 268 80% 47%;
-    --secondary-400: 268 85% 56%;
-    --secondary-500: 270 91% 65%;
-    --secondary-600: 272 94% 76%;
-    --secondary-700: 274 96% 85%;
-    --secondary-800: 276 98% 92%;
-    --secondary-900: 278 94% 95%;
-    --secondary-950: 280 100% 98%;
-  }
-
+  
   body {
-    @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-200;
+    @apply bg-background-light dark:bg-background-dark text-gray-900 dark:text-gray-100;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold text-primary-800 dark:text-primary-200;
+    @apply font-semibold;
   }
 
-  button, 
-  .btn {
-    @apply bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded transition-colors duration-200;
+  button {
+    @apply px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors;
   }
 
   a {
-    @apply text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 transition-colors duration-200;
+    @apply text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors;
   }
 
   input, select, textarea {
-    @apply border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-white;
   }
 }
